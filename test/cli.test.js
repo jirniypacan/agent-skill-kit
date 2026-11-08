@@ -16,7 +16,7 @@ async function write(path, text) {
 const read = path => fs.readFile(path, 'utf8');
 
 async function profile(t) {
-  const home = await fs.mkdtemp(join(tmpdir(), 'codex-skills-test-'));
+  const home = await fs.mkdtemp(join(tmpdir(), 'agent-skill-kit-test-'));
   t.after(() => fs.rm(home, { recursive: true, force: true, maxRetries: 4 }));
   const env = {
     ...process.env,
@@ -26,7 +26,7 @@ async function profile(t) {
     CLAUDE_CONFIG_DIR: join(home, 'claude config'),
     XDG_CONFIG_HOME: join(home, 'xdg'),
   };
-  const root = join(home, 'codex-skills');
+  const root = join(home, 'agent-skill-kit');
   const library = join(root, 'library');
   return {
     home, env, root, library,
@@ -55,7 +55,7 @@ test('installs once and connects all three agents to a shared library', async t 
   const configuredCodex = await read(codex);
   assert.ok(configuredCodex.startsWith(original));
   assert.ok(configuredCodex.includes(setup.library));
-  assert.ok(configuredCodex.includes('\r\n<!-- codex-skills:begin -->\r\n'));
+  assert.ok(configuredCodex.includes('\r\n<!-- agent-skill-kit:begin -->\r\n'));
 
   await write(userSkill, 'User skill content');
   success(setup.run('--codex'));
@@ -76,6 +76,25 @@ test('installs once and connects all three agents to a shared library', async t 
     }
   }
   for (const file of [claude, opencode]) assert.ok((await read(file)).startsWith(original));
+});
+
+test('reuses a library and global instructions created before the rename', async t => {
+  const setup = await profile(t);
+  const oldRoot = join(setup.home, 'codex-skills');
+  const oldLibrary = join(oldRoot, 'library');
+  const userSkill = join(oldLibrary, 'custom', 'SKILL.md');
+  const instructions = join(setup.env.CODEX_HOME, 'AGENTS.md');
+  const existing = `# Personal notes\n<!-- codex-skills:begin -->\nLibrary: ${oldLibrary}\n<!-- codex-skills:end -->\n`;
+  await write(instructions, existing);
+  await write(join(oldLibrary, 'index.json'), '{"skills":[]}');
+  await write(userSkill, 'User skill content');
+
+  success(setup.run('--codex'));
+  success(setup.run('--claude'));
+  assert.equal(await read(instructions), existing);
+  assert.equal(await read(userSkill), 'User skill content');
+  assert.ok((await read(join(setup.env.CLAUDE_CONFIG_DIR, 'CLAUDE.md'))).includes(oldLibrary));
+  await assert.rejects(fs.stat(setup.root), { code: 'ENOENT' });
 });
 
 test('rejects ambiguous commands and preserves a conflicting manager', async t => {
@@ -140,7 +159,7 @@ test('imports recommendations, preserves custom content and recovers an incomple
   assert.match(initial.stderr, /Skipped invalid skill/);
   assert.equal(await read(custom), skill('custom', 'User copy'));
   assert.equal(await read(join(setup.library, 'example', 'references', 'guide.md')), 'A supporting file');
-  assert.match(await read(join(setup.library, 'example', 'CODEX-SKILLS-UPSTREAM.txt')), /Upstream license/);
+  assert.match(await read(join(setup.library, 'example', 'AGENT-SKILL-KIT-UPSTREAM.txt')), /Upstream license/);
   let index = JSON.parse(await read(setup.index));
   assert.deepEqual(index.skills.map(entry => entry.name), ['custom', 'debugging', 'example']);
   assert.equal(index.skills[2].description, 'A: folded YAML description');
@@ -151,6 +170,7 @@ test('imports recommendations, preserves custom content and recovers an incomple
   index.skills.pop();
   await write(setup.index, JSON.stringify(index));
   const example = join(setup.library, 'example', 'SKILL.md');
+  await fs.rename(join(dirname(example), 'AGENT-SKILL-KIT-UPSTREAM.txt'), join(dirname(example), 'CODEX-SKILLS-UPSTREAM.txt'));
   await write(example, skill('example', 'Edited after install'));
   success(setup.run('--claude', '--rec'));
   index = JSON.parse(await read(setup.index));

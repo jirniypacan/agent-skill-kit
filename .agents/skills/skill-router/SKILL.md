@@ -1,11 +1,11 @@
 ---
 name: skill-router
-description: Select relevant skills from the shared Codex Skills library for a task that could benefit from specialist guidance. Use the existing library index to decide which skill files to read.
+description: Select relevant skills from the shared Agent Skill Kit library for a task that could benefit from specialist guidance. Use the existing library index to decide which skill files to read.
 ---
 
 # Skill Router
 
-1. Use the library location in the global or repository instructions. If it is unavailable, try `~/codex-skills/library`.
+1. Use the library location in the global or repository instructions. If it is unavailable, try `~/agent-skill-kit/library`.
 2. Read `index.json` from that library. If it is missing or unreadable, continue the task without library skills.
 3. Compare the indexed names and descriptions with the current request. Choose the smallest set that directly helps, which can be empty.
 4. Resolve each chosen path relative to the library. Check that it resolves to a file within the library and skip missing or out-of-library paths.

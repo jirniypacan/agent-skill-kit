@@ -1,26 +1,34 @@
-# Codex Skills
+# Agent Skill Kit
 
 Одна локальная библиотека Agent Skills для Codex, Claude Code и OpenCode. Установщик подключает два управляющих навыка, а библиотека хранится в домашней папке и доступна из любого проекта.
 
 ## Установка
 
-Нужны Node.js 22 или новее, npm с `npx` и доступ к GitHub. Установщик рассчитан на Windows, Linux и macOS. При запуске из GitHub и при использовании `--rec` нужен Git в `PATH`.
+Нужны Node.js 22 или новее и npm с `npx`. Установщик рассчитан на Windows, Linux и macOS. Для установки из GitHub и импорта через `--rec` нужны доступ к GitHub и Git в `PATH`.
+
+Пакет `agent-skill-kit-cli` подготовлен к публикации в npm. После публикации команда будет выглядеть так:
 
 ```sh
-npx github:jirniypacan/codex-skills --codex
-npx github:jirniypacan/codex-skills --claude
-npx github:jirniypacan/codex-skills --opencode
+npx agent-skill-kit-cli --codex
 ```
 
-Выберите один агент на запуск. Выполните отдельную команду, чтобы подключить другой агент к той же библиотеке. После установки откройте новую сессию агента. Пакет подготовлен к публикации в npm, текущий способ установки использует GitHub.
+Сейчас доступна установка из GitHub:
+
+```sh
+npx github:jirniypacan/agent-skill-kit --codex
+npx github:jirniypacan/agent-skill-kit --claude
+npx github:jirniypacan/agent-skill-kit --opencode
+```
+
+Выберите одного агента на запуск. Выполните отдельную команду, чтобы подключить другого агента к той же библиотеке. После установки откройте новую сессию агента.
 
 ## Рекомендованные навыки
 
 ```sh
-npx github:jirniypacan/codex-skills --codex --rec
+npx github:jirniypacan/agent-skill-kit --codex --rec
 ```
 
-При установке без `--rec` новая библиотека пуста. Флаг `--rec` импортирует навыки из каталога `skills/` актуальной основной ветки [Awesome Copilot](https://github.com/github/awesome-copilot) и [Superpowers](https://github.com/obra/superpowers). Установщик переносит папки навыков целиком и сохраняет исходную лицензию и SHA коммита рядом с каждым навыком в `CODEX-SKILLS-UPSTREAM.txt`. Скрипты из этих репозиториев при установке не запускаются.
+При установке без `--rec` новая библиотека пуста. Флаг `--rec` импортирует навыки из каталога `skills/` актуальной основной ветки Awesome Copilot и Superpowers. Установщик переносит папки навыков целиком и сохраняет исходную лицензию и SHA коммита рядом с каждым навыком в `AGENT-SKILL-KIT-UPSTREAM.txt`. Скрипты из этих репозиториев при установке не запускаются. [Awesome Copilot](https://github.com/github/awesome-copilot), [Superpowers](https://github.com/obra/superpowers).
 
 Существующие папки имеют приоритет. При совпадении имён в пустой библиотеке первой импортируется версия из Awesome Copilot. Установщик добавляет новые рекомендованные навыки в индекс и сообщает о пропусках. Для добавленных вручную навыков переиндексацию нужно запросить отдельно.
 
@@ -36,13 +44,13 @@ npx github:jirniypacan/codex-skills --codex --rec
 
 Поддерживаются `CODEX_HOME`, `CLAUDE_CONFIG_DIR` и `XDG_CONFIG_HOME`. Codex использует непустой `AGENTS.override.md`, если он есть на момент установки. Если позже сменится активный файл инструкций, запустите установку для Codex ещё раз.
 
-Общая библиотека находится в `~/codex-skills/library/` (на Windows — `%USERPROFILE%\codex-skills\library\`).
+Новые установки используют `~/agent-skill-kit/library/` (на Windows — `%USERPROFILE%\agent-skill-kit\library\`). Установки, созданные до переименования, продолжают использовать `~/codex-skills/library/`.
 
 ## Свои навыки
 
-1. Скопируйте каталог навыка в `~/codex-skills/library/`. Например, `my-skill/SKILL.md` и `my-skill/references/`.
+1. Скопируйте каталог навыка в общую библиотеку. Например, `my-skill/SKILL.md` и `my-skill/references/`.
 2. Укажите `name` и `description` в начале `SKILL.md` по [спецификации Agent Skills](https://agentskills.io/specification).
-3. Скажите агенту: «Переиндексируй библиотеку навыков Codex Skills».
+3. Скажите агенту «Переиндексируй библиотеку Agent Skill Kit».
 
 **Skill Indexer** по этому запросу собирает `library/index.json` заново. В индекс попадают имя, описание и путь относительно библиотеки. Индексатор пропускает некорректные навыки и удаляет записи об отсутствующих файлах.
 
@@ -52,7 +60,7 @@ npx github:jirniypacan/codex-skills --codex --rec
 
 - Установка рассчитана на локальные сессии, где агент может читать домашнюю папку. Настройки организации, песочница и приоритет инструкций агента могут влиять на загрузку.
 - Некоторые сторонние навыки рассчитаны на инструменты конкретного агента, плагины или дополнительные программы. Установщик сохраняет содержимое навыков, поэтому такие требования остаются в силе.
-- Если процесс установки был принудительно завершён и оставил `~/codex-skills/.install.lock/`, убедитесь, что установка завершилась, удалите этот временный каталог и повторите ту же команду.
+- Если процесс установки был принудительно завершён и оставил `.install.lock/` рядом с `library/`, убедитесь, что установка завершилась, удалите этот временный каталог и повторите ту же команду.
 
 Правила обнаружения файлов описаны в документации [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills) и [OpenCode](https://opencode.ai/docs/skills/).
 

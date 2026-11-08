@@ -12,9 +12,11 @@ const packageRoot = fileURLToPath(new URL('../', import.meta.url));
 const managerNames = ['skill-router', 'skill-indexer'];
 const recommendations = ['github/awesome-copilot', 'obra/superpowers'];
 const skillName = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const startMarker = '<!-- codex-skills:begin -->';
-const endMarker = '<!-- codex-skills:end -->';
-const usage = 'Usage: codex-skills (--codex | --claude | --opencode) [--rec]';
+const startMarker = '<!-- agent-skill-kit:begin -->';
+const endMarker = '<!-- agent-skill-kit:end -->';
+const legacyMarkers = ['<!-- codex-skills:begin -->', '<!-- codex-skills:end -->'];
+const upstreamNotice = 'AGENT-SKILL-KIT-UPSTREAM.txt';
+const usage = 'Usage: agent-skill-kit-cli (--codex | --claude | --opencode) [--rec]';
 
 async function readIfPresent(file, encoding) {
   try {
@@ -77,7 +79,9 @@ async function connectAgent(agent, home, root) {
 
   await fs.mkdir(resolve(instructions, '..'), { recursive: true });
   const existing = (await readIfPresent(instructions, 'utf8')) ?? '';
-  if (existing.includes(startMarker) && existing.includes(endMarker)) return;
+  if ([[startMarker, endMarker], legacyMarkers].some(markers => markers.every(marker => existing.includes(marker)))) {
+    return;
+  }
   const common = await fs.readFile(join(packageRoot, 'AGENTS.md'), 'utf8');
   const guidance = common.replace(
     /^- In this repository,.*$/m,
@@ -155,7 +159,6 @@ async function importRecommendations(library, stage) {
       const target = join(library, folder.name);
       const markdown = await readIfPresent(join(source, 'SKILL.md'), 'utf8');
       if (markdown === undefined) continue;
-      const notice = 'CODEX-SKILLS-UPSTREAM.txt';
       const sourceLine = `Source: ${url}\n`;
       let installedMarkdown = markdown;
       const exists = await entryExists(target);
@@ -163,7 +166,8 @@ async function importRecommendations(library, stage) {
         console.log(`Skipped existing skill: ${folder.name}`);
         const path = `${folder.name}/SKILL.md`;
         if (entries.has(path) || !(await fs.lstat(target)).isDirectory()) continue;
-        const existingNotice = await readIfPresent(join(target, notice), 'utf8');
+        const existingNotice = await readIfPresent(join(target, upstreamNotice), 'utf8')
+          ?? await readIfPresent(join(target, 'CODEX-SKILLS-UPSTREAM.txt'), 'utf8');
         if (!existingNotice?.startsWith(sourceLine)) continue;
         installedMarkdown = await readIfPresent(join(target, 'SKILL.md'), 'utf8');
         if (installedMarkdown === undefined) continue;
@@ -176,7 +180,7 @@ async function importRecommendations(library, stage) {
         continue;
       }
       if (!exists) {
-        await fs.writeFile(join(source, notice), `${sourceLine}Commit: ${revision}\n\n${license}`, { flag: 'wx' });
+        await fs.writeFile(join(source, upstreamNotice), `${sourceLine}Commit: ${revision}\n\n${license}`, { flag: 'wx' });
         if (await entryExists(target)) {
           console.log(`Skipped existing skill: ${folder.name}`);
           continue;
@@ -200,7 +204,10 @@ async function importRecommendations(library, stage) {
 
 async function install(agent, recommended) {
   const home = homedir();
-  const root = join(home, 'codex-skills');
+  const currentRoot = join(home, 'agent-skill-kit');
+  const legacyRoot = join(home, 'codex-skills');
+  const hasLegacyLibrary = await entryExists(join(legacyRoot, 'library', 'index.json'));
+  const root = hasLegacyLibrary && !(await entryExists(currentRoot)) ? legacyRoot : currentRoot;
   const library = join(root, 'library');
   await fs.mkdir(root, { recursive: true });
   const lock = join(root, '.install.lock');

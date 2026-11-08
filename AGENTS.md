@@ -1,4 +1,4 @@
-# Codex Skills
+# Agent Skill Kit
 
 - In this repository, the shared library is `library/` next to this file. For a global installation, use the absolute library path in your global instructions.
 - Use `skill-router` when a task could benefit from a library skill. The router reads the index and opens only relevant skill files. Skip the router for straightforward tasks.

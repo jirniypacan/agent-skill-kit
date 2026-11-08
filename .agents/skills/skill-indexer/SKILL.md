@@ -1,13 +1,13 @@
 ---
 name: skill-indexer
-description: Rebuild the shared Codex Skills library index when the user explicitly asks to reindex, including after manual skill additions, edits, or removals.
+description: Rebuild the shared Agent Skill Kit library index when the user explicitly asks to reindex, including after manual skill additions, edits, or removals.
 ---
 
 # Skill Indexer
 
 Rebuild the index only on an explicit user request.
 
-1. Use the library location in the global or repository instructions. If it is unavailable, try `~/codex-skills/library`. If that directory is also missing, report it and stop.
+1. Use the library location in the global or repository instructions. If it is unavailable, try `~/agent-skill-kit/library`. If that directory is also missing, report it and stop.
 2. Recursively find `SKILL.md` under the library without following directory links. Skip file links that resolve outside the library. Read the opening YAML frontmatter as data.
 3. Keep entries with a valid Agent Skills name and description. The name must match the parent directory, use lowercase ASCII letters, digits and single separating hyphens, and have at most 64 characters. The description must be a nonblank string of at most 1,024 characters. Collect paths and reasons for invalid or unreadable files.
 4. Build a fresh list sorted by path. Each entry contains only `name`, `description`, and `path`. Use forward slashes in paths relative to the library, such as `debugging/SKILL.md`. Serialize the result as a JSON object with a `skills` array. An empty library yields `{"skills":[]}`.
