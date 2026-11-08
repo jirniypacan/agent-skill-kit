@@ -1,18 +1,21 @@
 # Agent Skill Kit
 
-Одна локальная библиотека Agent Skills для Codex, Claude Code и OpenCode. Установщик подключает два управляющих навыка, а библиотека хранится в домашней папке и доступна из любого проекта.
+**English** · [Русский](README.ru.md)
 
-## Установка
+One local Agent Skills library for Codex, Claude Code, and OpenCode. The installer connects two skills that manage the shared library. The library lives in your home directory and is available across projects.
 
-Нужны Node.js 22 или новее и npm с `npx`. Установщик рассчитан на Windows, Linux и macOS. Для установки из GitHub и импорта через `--rec` нужны доступ к GitHub и Git в `PATH`.
+## Contents
 
-Пакет `agent-skill-kit-cli` подготовлен к публикации в npm. После публикации команда будет выглядеть так:
+- [Installation](#installation)
+- [Recommended skills](#recommended-skills)
+- [File locations](#file-locations)
+- [Your own skills](#your-own-skills)
+- [Compatibility](#compatibility)
+- [Development](#development)
 
-```sh
-npx agent-skill-kit-cli --codex
-```
+## Installation
 
-Сейчас доступна установка из GitHub:
+You need Node.js 22 or newer and npm with `npx`. The installer supports Windows, Linux, and macOS. Installing from GitHub or importing skills with `--rec` requires access to GitHub and Git on your `PATH`.
 
 ```sh
 npx github:jirniypacan/agent-skill-kit --codex
@@ -20,51 +23,51 @@ npx github:jirniypacan/agent-skill-kit --claude
 npx github:jirniypacan/agent-skill-kit --opencode
 ```
 
-Выберите одного агента на запуск. Выполните отдельную команду, чтобы подключить другого агента к той же библиотеке. После установки откройте новую сессию агента.
+Choose one agent per run. Run a separate command to connect another agent to the same library. Start a new agent session after installation.
 
-## Рекомендованные навыки
+## Recommended skills
 
 ```sh
 npx github:jirniypacan/agent-skill-kit --codex --rec
 ```
 
-При установке без `--rec` новая библиотека пуста. Флаг `--rec` импортирует навыки из каталога `skills/` актуальной основной ветки Awesome Copilot и Superpowers. Установщик переносит папки навыков целиком и сохраняет исходную лицензию и SHA коммита рядом с каждым навыком в `AGENT-SKILL-KIT-UPSTREAM.txt`. Скрипты из этих репозиториев при установке не запускаются. [Awesome Copilot](https://github.com/github/awesome-copilot), [Superpowers](https://github.com/obra/superpowers).
+Without `--rec`, a new library starts empty. The `--rec` flag imports skills from the `skills/` directories on the default branches of Awesome Copilot and Superpowers. The installer copies each skill directory in full and records the upstream license and commit SHA in `AGENT-SKILL-KIT-UPSTREAM.txt`. It skips running upstream scripts during installation. [Awesome Copilot](https://github.com/github/awesome-copilot), [Superpowers](https://github.com/obra/superpowers).
 
-Существующие папки имеют приоритет. При совпадении имён в пустой библиотеке первой импортируется версия из Awesome Copilot. Установщик добавляет новые рекомендованные навыки в индекс и сообщает о пропусках. Для добавленных вручную навыков переиндексацию нужно запросить отдельно.
+Existing directories take precedence. If both sources provide the same skill name, Awesome Copilot is imported first. The installer adds newly imported skills to the index and reports skipped skills. Request reindexing after adding skills manually.
 
-## Где хранятся файлы
+## File locations
 
-У каждого агента свои глобальные инструкции и точки входа для управляющих навыков. Установщик добавляет помеченный блок к текущим инструкциям и подключает `skill-router` и `skill-indexer` ссылками на общие файлы. В Windows используются junctions. Существующий одноимённый управляющий навык сохраняется, а установка сообщает о конфликте.
+Each agent has its own global instructions and skill discovery paths. The installer appends a marked block to the existing instructions and links `skill-router` and `skill-indexer` to their shared files. On Windows it uses directory junctions. If a different skill already occupies either name, the installer preserves it and reports the conflict.
 
-| Агент | Глобальные инструкции по умолчанию | Управляющие навыки |
+| Agent | Default global instructions | Skill discovery path |
 | --- | --- | --- |
 | Codex | `~/.codex/AGENTS.md` | `~/.agents/skills/` |
 | Claude Code | `~/.claude/CLAUDE.md` | `~/.claude/skills/` |
 | OpenCode | `~/.config/opencode/AGENTS.md` | `~/.config/opencode/skills/` |
 
-Поддерживаются `CODEX_HOME`, `CLAUDE_CONFIG_DIR` и `XDG_CONFIG_HOME`. Codex использует непустой `AGENTS.override.md`, если он есть на момент установки. Если позже сменится активный файл инструкций, запустите установку для Codex ещё раз.
+The installer respects `CODEX_HOME`, `CLAUDE_CONFIG_DIR`, and `XDG_CONFIG_HOME`. For Codex, it uses a nonempty `AGENTS.override.md` if one exists at installation time. Run the Codex installation command again if its active instructions file changes.
 
-Новые установки используют `~/agent-skill-kit/library/` (на Windows — `%USERPROFILE%\agent-skill-kit\library\`). Установки, созданные до переименования, продолжают использовать `~/codex-skills/library/`.
+New installations use `~/agent-skill-kit/library/` (`%USERPROFILE%\agent-skill-kit\library\` on Windows). Installations created before the rename continue to use `~/codex-skills/library/`.
 
-## Свои навыки
+## Your own skills
 
-1. Скопируйте каталог навыка в общую библиотеку. Например, `my-skill/SKILL.md` и `my-skill/references/`.
-2. Укажите `name` и `description` в начале `SKILL.md` по [спецификации Agent Skills](https://agentskills.io/specification).
-3. Скажите агенту «Переиндексируй библиотеку Agent Skill Kit».
+1. Copy the skill directory into the shared library. For example, include `my-skill/SKILL.md` and any files under `my-skill/references/`.
+2. Add `name` and `description` to the YAML frontmatter in `SKILL.md`. [Agent Skills specification](https://agentskills.io/specification)
+3. Ask your agent to rebuild the Agent Skill Kit index.
 
-**Skill Indexer** по этому запросу собирает `library/index.json` заново. В индекс попадают имя, описание и путь относительно библиотеки. Индексатор пропускает некорректные навыки и удаляет записи об отсутствующих файлах.
+**Skill Indexer** rebuilds `library/index.json` when explicitly requested. Each entry contains a name, description, and path relative to the library. The indexer skips invalid skill files and drops entries for missing files.
 
-**Skill Router** читает готовый индекс и выбирает только навыки, подходящие под задачу. Он открывает соответствующие `SKILL.md` и нужные вспомогательные файлы. Ручные изменения каталога становятся видны Router после переиндексации.
+**Skill Router** uses the current index to select skills relevant to the task. It opens only the selected `SKILL.md` files and the supporting files it needs. Skills added manually become discoverable after reindexing.
 
-## Совместимость
+## Compatibility
 
-- Установка рассчитана на локальные сессии, где агент может читать домашнюю папку. Настройки организации, песочница и приоритет инструкций агента могут влиять на загрузку.
-- Некоторые сторонние навыки рассчитаны на инструменты конкретного агента, плагины или дополнительные программы. Установщик сохраняет содержимое навыков, поэтому такие требования остаются в силе.
-- Если процесс установки был принудительно завершён и оставил `.install.lock/` рядом с `library/`, убедитесь, что установка завершилась, удалите этот временный каталог и повторите ту же команду.
+- The installer targets local sessions that can read your home directory. Organization policies, sandboxing, and agent instruction precedence can affect discovery.
+- Some third-party skills require tools, plugins, or programs specific to an agent. Each skill retains its upstream requirements.
+- If an interrupted installation leaves `.install.lock/` next to `library/`, check that the installer has stopped, remove that temporary directory, and rerun the same command.
 
-Правила обнаружения файлов описаны в документации [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills) и [OpenCode](https://opencode.ai/docs/skills/).
+Agent discovery rules are documented by [Codex](https://learn.chatgpt.com/docs/build-skills), [Claude Code](https://code.claude.com/docs/en/skills), and [OpenCode](https://opencode.ai/docs/skills/).
 
-## Разработка
+## Development
 
 ```text
 AGENTS.md
