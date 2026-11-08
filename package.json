@@ -1,0 +1,29 @@
+{
+  "name": "codex-skills",
+  "version": "0.1.0",
+  "description": "One shared Agent Skills library for Codex, Claude Code, and OpenCode",
+  "license": "UNLICENSED",
+  "type": "module",
+  "bin": {
+    "codex-skills": "bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    ".agents/skills/",
+    "AGENTS.md",
+    "library/index.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jirniypacan/codex-skills.git"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  }
+}
